@@ -68,6 +68,6 @@ print("Sleep..")
 # Turn off pytrack
 pytrackHelper.blink(1, 0x00ff00)  # Green
 
-py.setup_sleep(600)
+py.setup_sleep(3600)
 py.go_to_sleep(gps=False)
 # machine.deepsleep(10)
