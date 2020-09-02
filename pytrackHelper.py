@@ -23,7 +23,7 @@ from pytrack import Pytrack
 
 
 def blink(seconds, rgb):
-    print("blink", rgb)
+    # print("blink", rgb)
     pycom.rgbled(rgb)
     time.sleep(seconds/2)
     pycom.rgbled(0x000000)  # off
@@ -71,10 +71,10 @@ def getGPS(py, max_samples):
 
         coord = l76.coordinates()
         if coord[0] is None or coord[1] is None:
-            blink(1, 0x00008b)  # dark blue
+            blink(1, 0xff0000)  # red
             print("bad coord: ", coord)
         else:
-            blink(1, 0xffffff)  # white
+            blink(1, 0x00ff00)  # green
             valid_coord_count += 1
             if coord in coord_dict:
                 coord_dict[coord] += 1
