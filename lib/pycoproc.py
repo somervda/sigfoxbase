@@ -197,13 +197,6 @@ class Pycoproc:
         self._write(bytes([CMD_SETUP_SLEEP, time_s & 0xFF,
                            (time_s >> 8) & 0xFF, (time_s >> 16) & 0xFF]))
 
-    def gps_state(self, gps=True):
-        # enable or disable back-up power to the GPS receiver
-        if gps:
-            self.set_bits_in_memory(PORTC_ADDR, 1 << 7)
-        else:
-            self.mask_bits_in_memory(PORTC_ADDR, ~(1 << 7))
-
     def go_to_sleep(self, gps=True):
         self.gps_standby(gps)
         self.sensor_power(False)

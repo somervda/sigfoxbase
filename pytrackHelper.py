@@ -20,6 +20,7 @@ from machine import RTC
 from machine import SD
 from L76GNSS import L76GNSS
 from pytrack import Pytrack
+import struct
 
 
 def blink(seconds, rgb):
@@ -59,12 +60,14 @@ def getGPS(py, max_samples):
     rtc = machine.RTC()
     rtc.ntp_sync("pool.ntp.org")
     utime.sleep_ms(750)
-    print('\nRTC Set from NTP to UTC:', rtc.now())
+    # print('\nRTC Set from NTP to UTC:', rtc.now())
     utime.timezone(7200)
-    print('Adjusted from UTC to EST timezone', utime.localtime(), '\n')
+    # print('Adjusted from UTC to EST timezone', utime.localtime(), '\n')
 
     l76 = L76GNSS(py, timeout=30)
     valid_coord_count = 0
+
+    print("getGPS: ", end="")
 
     for sample_number in range(max_samples):
         # time.sleep(1)
@@ -72,19 +75,41 @@ def getGPS(py, max_samples):
         coord = l76.coordinates()
         if coord[0] is None or coord[1] is None:
             blink(1, 0xff0000)  # red
-            print("bad coord: ", coord)
+            print(".", end='')
         else:
             blink(1, 0x00ff00)  # green
+            print("^", end='')
             valid_coord_count += 1
             if coord in coord_dict:
                 coord_dict[coord] += 1
             else:
                 coord_dict[coord] = 1
-        print("coord_dict", coord_dict)
-        print("{} - {} - {} - {}".format(coord,
-                                         rtc.now(), gc.mem_free(), sample_number))
+        # print("coord_dict", coord_dict)
+        # print("{} - {}".format(coord, sample_number))
         # End early if we have enough coord samples
         if valid_coord_count > early_end_count:
+            print(" ")
             return most_common_coord(coord_dict)
-
+    print(" ")
     return most_common_coord(coord_dict)
+
+
+class GPS_Payload:
+    """ Class for managing the GPS payload data that is transmitted to the lorawan service
+    update the class properties and struct definition for the particular use case """
+    longitude = 0.0
+    latitude = 0.0
+    pack_format = "ff"
+
+    def __init__(self, longitude, latitude):
+        if longitude is not None and latitude is not None:
+            self.longitude = longitude  # Float
+            self.latitude = latitude  # Float
+
+    # see format options here https://docs.python.org/2/library/struct.html#format-characters
+    # Noter: use single precision float f for GPS Lng/Lat to get locations down to a meter
+    def pack(self):
+        return struct.pack(self.pack_format, self.longitude, self.latitude)
+
+    def calcsize(self):
+        return struct.calcsize(self.pack_format)
